@@ -16,7 +16,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={inter.variable}>
-      <body>
+      {/* Browser extensions (e.g. WOT, Grammarly) add attributes to <body>; ignore those mismatches. */}
+      <body suppressHydrationWarning>
         <AuthProvider initialUser={user}>{children}</AuthProvider>
       </body>
     </html>
