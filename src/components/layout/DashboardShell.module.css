@@ -1,0 +1,36 @@
+.shell {
+  min-height: 100vh;
+}
+
+.main {
+  margin-left: var(--sidebar-width);
+  min-width: 0;
+}
+
+.content {
+  padding: var(--space-5) var(--space-6);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .main {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: var(--space-4);
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgb(0 0 0 / 0.4);
+  }
+}
