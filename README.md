@@ -2,7 +2,8 @@
 
 A role-based project management dashboard built with Next.js, React, TypeScript and Node.js.
 
-See **[docs/STRUCTURE.md](docs/STRUCTURE.md)** for roles, the permission matrix, pages, flows and open questions.
+- **[docs/OVERVIEW.md](docs/OVERVIEW.md)**: plain-language overview to share with the team (what was built, roles, pages, how access works, FAQ)
+- **[docs/STRUCTURE.md](docs/STRUCTURE.md)**: the detailed structure: roles, permission matrix, pages, flows and open questions
 
 ## Tech stack
 
