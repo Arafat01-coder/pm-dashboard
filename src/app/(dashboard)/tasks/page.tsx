@@ -1,33 +1,57 @@
 import type { Metadata } from "next";
-import { Avatar, Badge, Button, Card, Icon, PageHeader, Table, type Column } from "@/components/ui";
+import Link from "next/link";
+import { FilterBar } from "@/components/common/FilterBar";
+import { Avatar, Badge, Card, Icon, PageHeader, Table, type Column } from "@/components/ui";
+import { NewTaskButton } from "@/features/tasks/NewTaskButton";
+import { TaskStatusSelect } from "@/features/tasks/TaskStatusSelect";
+import { TaskViewToggle } from "@/features/tasks/TaskViewToggle";
+import { loadTaskPageData } from "@/features/tasks/taskPageData";
 import { requirePermission } from "@/lib/auth/server";
-import { TASK_PRIORITY, TASK_STATUS, formatDate } from "@/lib/format";
+import { todayIso } from "@/lib/dates";
+import { TASK_PRIORITY, TASK_STATUS, formatDate, isOverdue } from "@/lib/format";
 import { can } from "@/lib/permissions";
-import { listProjectsForUser, listTasksForUser } from "@/services/projectService";
-import { listUsers } from "@/services/userService";
-import type { Task } from "@/types/domain";
+import { parseTaskFilters } from "@/lib/taskFilters";
+import { listTasksForUser } from "@/services/taskService";
+import type { TaskListItem } from "@/types/domain";
 import styles from "../pages.module.css";
 
 export const metadata: Metadata = { title: "Tasks" };
 
-export default async function TasksPage() {
-  const user = await requirePermission("task:view");
-  const [tasks, projects, users] = await Promise.all([
-    listTasksForUser(user),
-    listProjectsForUser(user),
-    listUsers(),
-  ]);
-  const projectName = new Map(projects.map((p) => [p.id, p.name]));
-  const userName = new Map(users.map((u) => [u.id, u.name]));
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-  const columns: Column<Task>[] = [
+export default async function TasksPage({ searchParams }: { searchParams: SearchParams }) {
+  const user = await requirePermission("task:view");
+  const params = await searchParams;
+  const filters = parseTaskFilters(params);
+  const [tasks, pageData] = await Promise.all([
+    listTasksForUser(user, filters),
+    loadTaskPageData(user, { includeStatus: true }),
+  ]);
+  const today = todayIso();
+  const canMove = can(user, "task:update_status");
+  const query = new URLSearchParams(
+    Object.entries(params).filter((e): e is [string, string] => typeof e[1] === "string" && !!e[1]),
+  ).toString();
+  const filtered = Object.values(filters).some(Boolean);
+
+  const columns: Column<TaskListItem>[] = [
     {
       key: "title",
       header: "Task",
       render: (t) => (
         <div className={styles.itemMain}>
-          <span className={styles.cellTitle}>{t.title}</span>
-          <span className={styles.muted}>{projectName.get(t.projectId)}</span>
+          <Link href={`/tasks/${t.id}`} className={`${styles.cellTitle} ${styles.titleLink}`}>
+            {t.title}
+          </Link>
+          <span className={styles.muted}>
+            {t.projectName}
+            {t.commentCount > 0 && (
+              <>
+                {" · "}
+                <Icon name="message" size={12} /> {t.commentCount}
+              </>
+            )}
+          </span>
         </div>
       ),
     },
@@ -35,15 +59,15 @@ export default async function TasksPage() {
       key: "assignee",
       header: "Assignee",
       hideOnMobile: true,
-      render: (t) => {
-        const name = userName.get(t.assigneeId) ?? "Unassigned";
-        return (
+      render: (t) =>
+        t.assignee ? (
           <span className={styles.person}>
-            <Avatar name={name} size={24} />
-            {name}
+            <Avatar name={t.assignee.name} size={24} />
+            {t.assignee.name}
           </span>
-        );
-      },
+        ) : (
+          <span className={styles.muted}>Unassigned</span>
+        ),
     },
     {
       key: "priority",
@@ -54,9 +78,23 @@ export default async function TasksPage() {
     {
       key: "status",
       header: "Status",
-      render: (t) => <Badge tone={TASK_STATUS[t.status].tone}>{TASK_STATUS[t.status].label}</Badge>,
+      render: (t) =>
+        canMove ? (
+          <TaskStatusSelect taskId={t.id} status={t.status} />
+        ) : (
+          <Badge tone={TASK_STATUS[t.status].tone}>{TASK_STATUS[t.status].label}</Badge>
+        ),
     },
-    { key: "due", header: "Due", hideOnMobile: true, render: (t) => formatDate(t.dueDate) },
+    {
+      key: "due",
+      header: "Due",
+      hideOnMobile: true,
+      render: (t) => (
+        <span className={isOverdue(t.dueDate, t.status === "done", today) ? styles.overdue : undefined}>
+          {formatDate(t.dueDate)}
+        </span>
+      ),
+    },
   ];
 
   return (
@@ -65,11 +103,21 @@ export default async function TasksPage() {
         title="Tasks"
         description="Tasks across the projects you can access."
         actions={
-          can(user, "task:create") && <Button leftIcon={<Icon name="plus" size={16} />}>New task</Button>
+          <>
+            <TaskViewToggle current="list" query={query} />
+            {pageData.canCreate && <NewTaskButton projects={pageData.projectOptions} />}
+          </>
         }
       />
+      <FilterBar searchPlaceholder="Search tasks" filters={pageData.filters} />
       <Card padded={false}>
-        <Table columns={columns} rows={tasks} getRowKey={(t) => t.id} emptyTitle="No tasks yet" />
+        <Table
+          columns={columns}
+          rows={tasks}
+          getRowKey={(t) => t.id}
+          emptyTitle={filtered ? "No tasks match your filters" : "No tasks yet"}
+          emptyDescription={filtered ? "Try a different search or clear the filters." : undefined}
+        />
       </Card>
     </>
   );

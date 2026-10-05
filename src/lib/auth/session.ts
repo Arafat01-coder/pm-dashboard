@@ -26,7 +26,7 @@ function getSecretKey(): Uint8Array {
 }
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ role: payload.role })
+  return new SignJWT({ role: payload.role, sv: payload.sv })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
     .setIssuedAt()
@@ -44,8 +44,10 @@ export async function verifySessionToken(
       algorithms: ["HS256"],
     });
     const role = payload.role as SessionPayload["role"];
-    if (typeof payload.sub !== "string" || !ROLES.includes(role)) return null;
-    return { sub: payload.sub, role };
+    if (typeof payload.sub !== "string" || !ROLES.includes(role) || typeof payload.sv !== "number") {
+      return null;
+    }
+    return { sub: payload.sub, role, sv: payload.sv };
   } catch {
     return null;
   }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { DEMO_PASSWORD, seedUsers } from "@/lib/data/mock-db";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demo";
 import { ROLE_LABELS } from "@/lib/permissions";
+import { AuthShell } from "../AuthShell";
 import { LoginForm, type DemoAccount } from "./LoginForm";
-import styles from "./login.module.css";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -19,29 +19,25 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { next } = await searchParams;
+  const { next, reset } = await searchParams;
 
   // Demo accounts are shown in development only.
   const demoAccounts: DemoAccount[] =
     process.env.NODE_ENV === "production"
       ? []
-      : seedUsers.slice(0, 5).map((u) => ({
+      : DEMO_ACCOUNTS.map((u) => ({
           email: u.email,
           password: DEMO_PASSWORD,
           label: ROLE_LABELS[u.role],
         }));
 
   return (
-    <main className={styles.page}>
-      <div className={styles.panel}>
-        <div className={styles.brand}>
-          <span className={styles.logo} aria-hidden="true">PM</span>
-          <span className={styles.brandName}>ProjectHub</span>
-        </div>
-        <h1 className={styles.title}>Sign in to your account</h1>
-        <p className={styles.subtitle}>Welcome back. Enter your details to continue.</p>
-        <LoginForm nextPath={safeNextPath(next)} demoAccounts={demoAccounts} />
-      </div>
-    </main>
+    <AuthShell title="Sign in to your account" subtitle="Welcome back. Enter your details to continue.">
+      <LoginForm
+        nextPath={safeNextPath(next)}
+        demoAccounts={demoAccounts}
+        notice={reset === "1" ? "Your password was reset. Sign in with your new password." : undefined}
+      />
+    </AuthShell>
   );
 }

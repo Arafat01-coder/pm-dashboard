@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
@@ -15,6 +16,8 @@ export interface DemoAccount {
 interface LoginFormProps {
   nextPath: string;
   demoAccounts: DemoAccount[];
+  /** A success message to show above the form, e.g. after a password reset. */
+  notice?: string;
 }
 
 type FieldErrors = { email?: string; password?: string };
@@ -29,7 +32,7 @@ function validate(email: string, password: string): FieldErrors {
   return errors;
 }
 
-export function LoginForm({ nextPath, demoAccounts }: LoginFormProps) {
+export function LoginForm({ nextPath, demoAccounts, notice }: LoginFormProps) {
   const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -60,6 +63,11 @@ export function LoginForm({ nextPath, demoAccounts }: LoginFormProps) {
   return (
     <>
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        {notice && !formError && (
+          <div className={styles.notice} role="status">
+            {notice}
+          </div>
+        )}
         {formError && (
           <div className={styles.alert} role="alert">
             {formError}
@@ -84,6 +92,9 @@ export function LoginForm({ nextPath, demoAccounts }: LoginFormProps) {
           error={fieldErrors.password}
           disabled={isSubmitting}
         />
+        <Link href="/forgot-password" className={styles.forgot}>
+          Forgot password?
+        </Link>
         <Button type="submit" size="lg" fullWidth isLoading={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}
         </Button>

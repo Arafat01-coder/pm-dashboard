@@ -1,4 +1,4 @@
-import type { Permission, Role } from "@/types/auth";
+import { ROLES, type Permission, type Role } from "@/types/auth";
 
 const ALL_PERMISSIONS: Permission[] = [
   "dashboard:view",
@@ -12,10 +12,12 @@ const ALL_PERMISSIONS: Permission[] = [
   "task:edit",
   "task:delete",
   "task:update_status",
+  "task:comment",
   "user:view",
   "user:invite",
   "user:manage_roles",
   "report:view",
+  "activity:view",
   "settings:manage_org",
   "billing:manage",
 ];
@@ -37,8 +39,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "task:edit",
     "task:delete",
     "task:update_status",
+    "task:comment",
     "user:view",
     "report:view",
+    "activity:view",
   ],
   member: [
     "dashboard:view",
@@ -46,9 +50,22 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "task:view",
     "task:create",
     "task:update_status",
+    "task:comment",
+    "activity:view",
   ],
-  client: ["dashboard:view", "project:view", "task:view"],
+  client: ["dashboard:view", "project:view", "task:view", "activity:view"],
 };
+
+/**
+ * Which roles a user may assign to others. Nobody can grant a role above
+ * their own, and only a Super Admin can create another Super Admin.
+ */
+export function assignableRoles(actor: HasRole): Role[] {
+  if (!actor) return [];
+  if (actor.role === "super_admin") return [...ROLES];
+  if (actor.role === "admin") return ROLES.filter((r) => r !== "super_admin");
+  return [];
+}
 
 export const ROLE_LABELS: Record<Role, string> = {
   super_admin: "Super Admin",

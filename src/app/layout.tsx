@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ToastProvider } from "@/components/ui/Toast";
 import { AuthProvider } from "@/context/AuthContext";
 import { getCurrentUser } from "@/lib/auth/server";
 import "./globals.css";
@@ -18,7 +19,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={inter.variable}>
       {/* Browser extensions (e.g. WOT, Grammarly) add attributes to <body>; ignore those mismatches. */}
       <body suppressHydrationWarning>
-        <AuthProvider initialUser={user}>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider initialUser={user}>{children}</AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

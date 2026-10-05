@@ -11,7 +11,10 @@ import type { Permission } from "@/types/auth";
  * Pages and API routes still check permissions themselves (lib/auth/server.ts).
  */
 
-const PUBLIC_ROUTES = ["/login"];
+/** Signed-out pages; signed-in users are sent to the dashboard instead. */
+const PUBLIC_ROUTES = ["/login", "/forgot-password"];
+/** Pages that work whether or not someone is signed in (links from emails). */
+const OPEN_ROUTES = ["/invite", "/reset-password"];
 
 const ROUTE_PERMISSIONS: { prefix: string; permission: Permission }[] = [
   { prefix: "/team", permission: "user:view" },
@@ -20,8 +23,11 @@ const ROUTE_PERMISSIONS: { prefix: string; permission: Permission }[] = [
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const matches = (r: string) => pathname === r || pathname.startsWith(`${r}/`);
+  if (OPEN_ROUTES.some(matches)) return NextResponse.next();
+
   const session = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
-  const isPublic = PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+  const isPublic = PUBLIC_ROUTES.some(matches);
 
   if (isPublic) {
     return session

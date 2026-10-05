@@ -21,3 +21,8 @@ next-env.d.ts
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# database + generated client
+prisma/*.db
+prisma/*.db-journal
+src/generated/

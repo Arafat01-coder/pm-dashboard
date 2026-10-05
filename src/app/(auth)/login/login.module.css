@@ -66,6 +66,48 @@
   font-size: 13px;
 }
 
+.notice {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  font-size: 13px;
+}
+
+.forgot {
+  align-self: flex-end;
+  margin-top: calc(-1 * var(--space-2));
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+.forgot:hover {
+  text-decoration: underline;
+}
+
+.footerLink {
+  margin-top: var(--space-5);
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.footerLink a {
+  color: var(--color-primary);
+}
+
+.devLink {
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.devLink a {
+  color: var(--color-primary);
+}
+
 .demo {
   margin-top: var(--space-5);
   padding-top: var(--space-4);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { clearAttempts, isRateLimited, recordFailedAttempt } from "@/lib/auth/rateLimit";
-import { SESSION_COOKIE, createSessionToken, sessionCookieOptions } from "@/lib/auth/session";
+import { attachSession } from "@/lib/auth/server";
 import { findUserByEmail, toPublicUser } from "@/services/userService";
 
 // Compared against when the email does not exist, so the response
@@ -44,9 +44,9 @@ export async function POST(request: Request) {
   }
 
   clearAttempts(limitKey);
-  const token = await createSessionToken({ sub: user.id, role: user.role });
-
-  const response = NextResponse.json({ user: toPublicUser(user) });
-  response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
-  return response;
+  return attachSession(NextResponse.json({ user: toPublicUser(user) }), {
+    id: user.id,
+    role: toPublicUser(user).role,
+    sessionVersion: user.sessionVersion,
+  });
 }

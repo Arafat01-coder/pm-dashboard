@@ -4,12 +4,17 @@ import { NextResponse } from "next/server";
 import { can } from "@/lib/permissions";
 import { findUserById, toPublicUser } from "@/services/userService";
 import type { Permission, PublicUser } from "@/types/auth";
-import { SESSION_COOKIE, verifySessionToken } from "./session";
+import {
+  SESSION_COOKIE,
+  createSessionToken,
+  sessionCookieOptions,
+  verifySessionToken,
+} from "./session";
 
 /**
  * Server-side auth helpers for pages, layouts and API routes.
- * The token is re-checked against the user store on every request, so a
- * deactivated user or a changed role takes effect immediately.
+ * The token is re-checked against the database on every request, so a
+ * deactivated user, a changed role or a password change takes effect at once.
  */
 
 export async function getCurrentUser(): Promise<PublicUser | null> {
@@ -18,7 +23,7 @@ export async function getCurrentUser(): Promise<PublicUser | null> {
   if (!session) return null;
 
   const user = await findUserById(session.sub);
-  if (!user || !user.isActive) return null;
+  if (!user || !user.isActive || user.sessionVersion !== session.sv) return null;
   return toPublicUser(user);
 }
 
@@ -50,4 +55,14 @@ export async function authorizeApi(permission?: Permission): Promise<ApiAuthResu
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return { user };
+}
+
+/** Signs the user in on this response (sets the session cookie). */
+export async function attachSession(
+  response: NextResponse,
+  user: { id: string; role: PublicUser["role"]; sessionVersion: number },
+): Promise<NextResponse> {
+  const token = await createSessionToken({ sub: user.id, role: user.role, sv: user.sessionVersion });
+  response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+  return response;
 }

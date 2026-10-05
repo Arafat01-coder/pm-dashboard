@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Badge, Card, PageHeader } from "@/components/ui";
+import { ChangePasswordForm } from "@/features/settings/ChangePasswordForm";
+import { ProfileForm } from "@/features/settings/ProfileForm";
 import { requireUser } from "@/lib/auth/server";
 import { ROLE_LABELS, ROLE_PERMISSIONS, can } from "@/lib/permissions";
 import styles from "../pages.module.css";
@@ -11,24 +13,20 @@ export default async function SettingsPage() {
 
   return (
     <div className={styles.stack}>
-      <PageHeader title="Settings" description="Your profile and access." />
+      <PageHeader title="Settings" description="Your profile, password and access." />
 
       <Card title="Profile">
-        <dl className={styles.detailsGrid}>
-          <dt>Name</dt>
-          <dd>{user.name}</dd>
-          <dt>Email</dt>
-          <dd>{user.email}</dd>
-          <dt>Job title</dt>
-          <dd>{user.title}</dd>
-          <dt>Role</dt>
-          <dd>
-            <Badge tone="primary">{ROLE_LABELS[user.role]}</Badge>
-          </dd>
-        </dl>
+        <ProfileForm />
       </Card>
 
-      <Card title="Your permissions">
+      <Card title="Change password">
+        <ChangePasswordForm />
+      </Card>
+
+      <Card title="Your access">
+        <p className={styles.muted} style={{ marginBottom: 12 }}>
+          Role: <Badge tone="primary">{ROLE_LABELS[user.role]}</Badge>
+        </p>
         <div className={styles.permissionList}>
           {ROLE_PERMISSIONS[user.role].map((p) => (
             <Badge key={p}>{p}</Badge>

@@ -14,6 +14,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** After a flow that signs the user in on the server (e.g. accepting an invite). */
+  setSignedInUser: (user: PublicUser) => void;
   can: (permission: Permission) => boolean;
 }
 
@@ -85,6 +87,7 @@ export function AuthProvider({ initialUser, children }: AuthProviderProps) {
       login,
       logout,
       refresh,
+      setSignedInUser: setUser,
       can: (permission) => canFn(user, permission),
     }),
     [user, login, logout, refresh],

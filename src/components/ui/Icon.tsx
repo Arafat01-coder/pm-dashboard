@@ -11,6 +11,15 @@ const PATHS = {
   chevronDown: "M6 9l6 6 6-6",
   plus: "M12 5v14M5 12h14",
   lock: "M5 11h14v10H5zM8 11V7a4 4 0 1 1 8 0v4",
+  edit: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
+  trash: "M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6",
+  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35",
+  board: "M3 3h5v18H3zM10 3h5v12h-5zM17 3h4v8h-4z",
+  list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+  message: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  copy: "M9 9h11v11H9zM5 15H4V4h11v1",
+  activity: "M22 12h-4l-3 9L9 3l-3 9H2",
+  arrowLeft: "M19 12H5M12 19l-7-7 7-7",
 } as const;
 
 export type IconName = keyof typeof PATHS;

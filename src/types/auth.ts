@@ -8,6 +8,10 @@ export const ROLES = [
 
 export type Role = (typeof ROLES)[number];
 
+export function isRole(value: unknown): value is Role {
+  return typeof value === "string" && (ROLES as readonly string[]).includes(value);
+}
+
 /**
  * Permissions are written as "resource:action".
  * Code checks permissions, never roles, so new roles can be added
@@ -25,29 +29,28 @@ export type Permission =
   | "task:edit"
   | "task:delete"
   | "task:update_status"
+  | "task:comment"
   | "user:view"
   | "user:invite"
   | "user:manage_roles"
   | "report:view"
+  | "activity:view"
   | "settings:manage_org"
   | "billing:manage";
 
-/** User record as stored in the data layer (includes the password hash). */
-export interface UserRecord {
+/** Safe user shape that can be sent to the browser. */
+export interface PublicUser {
   id: string;
   name: string;
   email: string;
   role: Role;
-  passwordHash: string;
   title: string;
   isActive: boolean;
 }
-
-/** Safe user shape that can be sent to the browser. */
-export type PublicUser = Omit<UserRecord, "passwordHash">;
 
 /** Data stored inside the signed session token. Keep it small. */
 export interface SessionPayload {
   sub: string; // user id
   role: Role;
+  sv: number; // session version; bumped on password change to sign out other sessions
 }
